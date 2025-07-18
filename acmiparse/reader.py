@@ -7,28 +7,34 @@ from zipfile import ZipFile, is_zipfile
 
 logger = logging.getLogger(__name__)
 
-class AcmiFileReader:
+class ACMIFileReader:
     def __init__(self, file_path: str, encoding: str = 'utf-8-sig'):
         self.file_path = file_path
         self.encoding = encoding
-        self.file_extension = os.path.splitext(file_path)[-1].lower()
+        if not os.path.exists(file_path):
+            logger.error(f"文件不存在: {file_path}")
+            raise FileNotFoundError(f"文件不存在: {file_path}")
+        if is_zipfile(file_path):
+            self.zip_file = True
+        elif self.file_path.lower().endswith('.acmi'):
+            self.zip_file = False
+        else:
+            logger.error(f"不支持的文件格式:{self.file_extension}")
+            raise ValueError(f"不支持的文件格式:{self.file_extension}")
 
     def _open_compressed(self) -> Generator[str, None, None]:
         """尝试从压缩包中读取.acmi文件"""
-        if self.file_extension in ('.zip', '.7z'):
-            try:
-                with ZipFile(self.file_path) as z:
-                    for name in z.namelist():
-                        if name.lower().endswith('.acmi'):
-                            with z.open(name) as f:
-                                yield from self._read_lines(f)
-                            return
-                raise FileNotFoundError("压缩包中未找到.acmi文件")
-            except Exception as e:
-                logger.error(f"解压失败: {e}")
-                raise
-        else:
-            raise ValueError("不支持的压缩格式")
+        try:
+            with ZipFile(self.file_path) as z:
+                for name in z.namelist():
+                    if name.lower().endswith('.acmi'):
+                        with z.open(name) as f:
+                            yield from self._read_lines(f)
+                        return
+            raise FileNotFoundError("压缩包中未找到.acmi文件")
+        except Exception as e:
+            logger.error(f"解压失败: {e}")
+            raise
 
     def _read_lines(self, file: Union[BinaryIO, None] = None) -> Generator[str, None, None]:
         """通用读取逻辑"""
@@ -49,10 +55,10 @@ class AcmiFileReader:
 
     def read_lines(self) -> Generator[str, None, None]:
         """读取文件行，自动处理压缩文件"""
-        if self.file_extension in ('.acmi'):
-            return self._read_lines()
-        else:
+        if self.zip_file:
             return self._open_compressed()
+        else:
+            return self._read_lines()
 
 # class AcmiParser:
 #     def __init__(self, reader: 'AcmiFileReader'):
