@@ -1,14 +1,15 @@
-from typing import Optional, List, Dict, Union
+from typing import Optional, List, Dict, Union, Set
 from dataclasses import dataclass, field
 from collections import defaultdict
 
 class ACMIPropertyRegistry:
-    GLOBAL_PROPERTIES_ALLOWED_TEXT_KEYS: List[str] = ["DataSource", "DataRecorder", "ReferenceTime", "RecordingTime", "Author", "Title", "Category", "Briefing", "Debriefing", "Comments", "MapId"]
-    GLOBAL_PROPERTIES_ALLOWED_NUMERIC_KEYS: List[str] = ["ReferenceLongitude", "ReferenceLatitude"]
+    GLOBAL_PROPERTIES_ALLOWED_TEXT_KEYS: Set[str] = frozenset(["DataSource", "DataRecorder", "ReferenceTime", "RecordingTime", "Author", "Title", "Category", "Briefing", "Debriefing", "Comments", "MapId"])
+    GLOBAL_PROPERTIES_ALLOWED_NUMERIC_KEYS: Set[str] = frozenset(["ReferenceLongitude", "ReferenceLatitude"])
+    GLOBAL_PROPERTIES_ALLOWED_KEYS: Set[str] = GLOBAL_PROPERTIES_ALLOWED_TEXT_KEYS | GLOBAL_PROPERTIES_ALLOWED_NUMERIC_KEYS
     # 内置的字符串列表（类级常量，不会参与 __init__）
-    OBJECT_PROPERTIES_ALLOWED_TEXT_KEYS: List[str] = ["Name", "Type", "AdditionalType", "Parent", "Next", "ShortName", "LongName", "FullName", "CallSign", "Registration", "Squawk", "ICAO24",
-                "Pilot", "Group", "Country", "Coalition", "Color", "Shape", "Debug", "Label", "FocusedTarget", "LockedTarget"] + [f"LockedTarget{i}" for i in range(1, 10)]
-    OBJECT_PROPERTIES_ALLOWED_NUMERIC_KEYS: List[str] = ["Importance", "Slot", "Disabled", "Visible", "Health", "Length", "Width", "Height", "Radius", "IAS", "CAS", "TAS", "Mach", "AltimeterSetting", 
+    OBJECT_PROPERTIES_ALLOWED_TEXT_KEYS: Set[str] = frozenset(["Name", "Type", "AdditionalType", "Parent", "Next", "ShortName", "LongName", "FullName", "CallSign", "Registration", "Squawk", "ICAO24",
+                "Pilot", "Group", "Country", "Coalition", "Color", "Shape", "Debug", "Label", "FocusedTarget", "LockedTarget"] + [f"LockedTarget{i}" for i in range(1, 10)])
+    OBJECT_PROPERTIES_ALLOWED_NUMERIC_KEYS: Set[str] = frozenset(["Importance", "Slot", "Disabled", "Visible", "Health", "Length", "Width", "Height", "Radius", "IAS", "CAS", "TAS", "Mach", "AltimeterSetting", 
                 "OnGround", "AOA", "AOS", "AGL", "HDG", "HDM", "Throttle", "Throttle2", "EngineRPM", "EngineRPM2", "NR", "NR2", "RotorRPM", "RotorRPM2", 
                 "Afterburner", "AirBrakes", "Flaps", "LandingGear", "LandingGearHandle", "Tailhook", "Parachute", "DragChute", "FuelWeight", "FuelVolume", 
                 "FuelFlowWeight", "FuelFlowVolume"] + [f"FuelWeight{i}" for i in range(1, 10)] + [f"FuelVolume{i}" for i in range(1, 10)] + [f"FuelFlowWeight{i}" for i in range(1, 9)] + [
@@ -19,7 +20,8 @@ class ACMIPropertyRegistry:
                 "RollControlPosition", "PitchControlPosition", "YawControlPosition", "RollTrimTab", "PitchTrimTab", "YawTrimTab", "AileronLeft", "AileronRight", "Elevator", "Rudder", 
                 "LocalizerLateralDeviation", "GlideslopeVerticalDeviation", "LocalizerAngularDeviation", "GlideslopeAngularDeviation", "PilotHeadRoll", "PilotHeadPitch", "PilotHeadYaw",
                 "PilotEyeGazePitch", "PilotEyeGazeYaw", "VerticalGForce", "LongitudinalGForce", "LateralGForce", "QNH", "WindDirection", "WindPitch", "WindSpeed", "TriggerPressed",
-                "ENL", "HeartRate", "SpO2"]
+                "ENL", "HeartRate", "SpO2"])
+    OBJECT_PROPERTIES_ALLOWED_KEYS: Set[str] = OBJECT_PROPERTIES_ALLOWED_TEXT_KEYS | OBJECT_PROPERTIES_ALLOWED_NUMERIC_KEYS
 
 
 @dataclass
