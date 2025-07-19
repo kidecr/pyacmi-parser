@@ -5,7 +5,7 @@ import logging
 from typing import Iterator, TextIO, Any, Dict, Tuple
 from .reader import ACMIFileReader
 from .model import *
-from .utils import *
+from .utils import to_float, parse_body
 from .acmi_file import ACMIFile, FrameObjectRef
 
 logger = logging.getLogger(__name__)
@@ -114,71 +114,7 @@ class ACMIParser:
 
     # ---------- 内部工具 ----------
     def _parse_body(self, id, body: str) -> Tuple[ACMIObjectCoordinates, ACMIEvent, ACMIObjectProperties]:
-        coords = None 
-        props  = None 
-        event  = None 
-        for kv in self._split_props(body):
-            k, v = kv.split('=', 1)
-            k = k.strip()
-            v = v.strip()
-            # --- T 特殊处理 ---
-            if k == 'T':
-                coords = ACMIObjectCoordinates(object_id=id)
-                parts = v.split('|')
-                n = len(parts)
-                if n == 3:
-                    coords.longitude = to_float(parts[0])  # 经度
-                    coords.latitude  = to_float(parts[1])  # 纬度
-                    coords.altitude  = to_float(parts[2])  # 高度
-                elif n == 5:
-                    coords.longitude = to_float(parts[0])  # 经度
-                    coords.latitude  = to_float(parts[1])  # 纬度
-                    coords.altitude  = to_float(parts[2])  # 高度
-                    coords.u         = to_float(parts[3])  # U
-                    coords.v         = to_float(parts[4])  # V
-                elif n == 6:
-                    coords.longitude = to_float(parts[0])  # 经度
-                    coords.latitude  = to_float(parts[1])  # 纬度
-                    coords.altitude  = to_float(parts[2])  # 高度
-                    coords.roll      = to_float(parts[3])  # Roll
-                    coords.pitch     = to_float(parts[4])  # Pitch
-                    coords.yaw       = to_float(parts[5])  # Yaw
-                elif n == 9:
-                    coords.longitude = to_float(parts[0])  # 经度
-                    coords.latitude  = to_float(parts[1])  # 纬度
-                    coords.altitude  = to_float(parts[2])  # 高度
-                    coords.roll      = to_float(parts[3])  # Roll
-                    coords.pitch     = to_float(parts[4])  # Pitch
-                    coords.yaw       = to_float(parts[5])  # Yaw
-                    coords.u         = to_float(parts[6])  # U
-                    coords.v         = to_float(parts[7])  # V
-                    coords.heading   = to_float(parts[8])  # Heading
-                else:
-                    logger.warning(f"无法解析坐标: {v}")
-            elif k == 'Event':
-                event = ACMIEvent(object_id=id)
-                parts = v.split('|')
-                event.event_type = parts[0]
-                n = len(parts)
-                if n > 2:
-                    event.object_ids = [int(x, 16) for x in parts[1:-1] if x.strip()]
-                if n > 1:
-                    event.event_text = parts[-1]
-                else:
-                    event.event_text = ''
-            else:
-                props = ACMIObjectProperties() if not props else props
-                if k in ACMIPropertyRegistry.OBJECT_PROPERTIES_ALLOWED_TEXT_KEYS:       # 字符串属性较少，出现频率更高，放前面
-                    props.text_properties = props.text_properties or {}
-                    props.text_properties[k] = v
-                elif k in ACMIPropertyRegistry.OBJECT_PROPERTIES_ALLOWED_NUMERIC_KEYS:
-                    num_val = float(v)
-                    props.numeric_properties = props.numeric_properties or {}
-                    props.numeric_properties[k] = num_val
-                else:
-                    props.text_properties = props.text_properties or {}
-                    props.text_properties[k] = v
-        return coords, event, props
+        return parse_body(id, body)
 
     @staticmethod
     def _split_props(body: str) -> List[str]:

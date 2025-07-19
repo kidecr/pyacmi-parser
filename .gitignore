@@ -1,3 +1,9 @@
 data
 **/__pycache__
 *.prof
+build
+**.pyd
+**.c
+**.h
+**.cpp
+**.hpp

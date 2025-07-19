@@ -1,10 +1,9 @@
-import re
+from acmiparse.cutils import _c_to_float, _c_parse_body
+from math import nan
+from typing import Tuple
 
-FLOAT_PATTERN = re.compile(r'^[+-]?(\d+(\.\d*)?|\.\d+)([eE][+-]?\d+)?$')
-def to_float(s: str, default: float = None) -> float:
-    s = s.strip()
-    if not s:
-        return default
-    if FLOAT_PATTERN.match(s):
-        return float(s)
-    return default
+def to_float(value: str, default: float = nan):
+    return _c_to_float(value, default)
+
+def parse_body(id: int, body: str) -> Tuple['ACMIObjectCoordinates', 'ACMIEvent', 'ACMIObjectProperties']:
+    return _c_parse_body(id, body)
