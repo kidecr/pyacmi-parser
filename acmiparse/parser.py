@@ -6,6 +6,7 @@ from typing import Iterator, TextIO, Any, Dict, Tuple
 from .reader import ACMIFileReader
 from .model import *
 from .utils import *
+from .acmi_file import ACMIFile, FrameObjectRef
 
 logger = logging.getLogger(__name__)
 
@@ -253,12 +254,14 @@ class ACMILoader:
             if ev.event:
                 obj.object_events = ev.event
             if self._current_frame:
+                frame_index = len(self._file.frames)
+                obj_index = len(self._current_frame.objects)
                 self._current_frame.objects.append(obj)
+                self._file._id_index[obj.object_id].append(FrameObjectRef(frame_index, obj_index))
             # print(f'add object {self._current_frame}')
 
         elif isinstance(ev, _ObjectRemove):
             self._obj_table.pop(ev.obj_id, None)
-
 
     @staticmethod
     def load_file(file_path: str, encoding: str = 'utf-8-sig') -> ACMIFile:
